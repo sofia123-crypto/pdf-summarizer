@@ -1,5 +1,5 @@
-// Import Transformers.js UMD build from CDN
-importScripts('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js');
+// Import Transformers.js UMD build locally
+importScripts('transformers.js');
 
 // Configure environment to fetch models only from Hugging Face Hub (no local assets)
 const { pipeline, env } = transformers;
