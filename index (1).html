@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SummaPDF – Résumés automatiques de PDF</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- PDF.js from CDN (FIX #1: no local bundled file; worker set in app.js) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <div class="app-wrap">
+
+    <header class="site-header">
+      <div class="logo-mark">
+        <i class="fa-solid fa-layer-group"></i>
+        <span>Summa<em>PDF</em></span>
+      </div>
+      <p class="tagline">Résumé intelligent de PDF par IA · 100 % privé</p>
+    </header>
+
+    <!-- file:// warning (shown automatically by app.js) -->
+    <div id="cors-warning" class="alert-banner hidden">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>Vous utilisez le protocole <code>file://</code>. Lancez un serveur local pour que PDF.js fonctionne correctement : <code>python -m http.server</code> puis ouvrez <code>http://localhost:8000</code>.</span>
+    </div>
+
+    <main class="layout">
+
+      <!-- ─── LEFT PANEL ─────────────────────────────── -->
+      <section class="card panel-left">
+
+        <h2 class="panel-title"><i class="fa-solid fa-gear"></i> Paramètres</h2>
+
+        <!-- Drop zone -->
+        <div id="dropzone" class="dropzone" onclick="document.getElementById('file-input').click()">
+          <input type="file" id="file-input" accept=".pdf" style="display:none">
+          <i class="fa-solid fa-file-arrow-up drop-icon"></i>
+          <p class="drop-main">Glissez un PDF ou cliquez</p>
+          <p class="drop-sub">Format PDF uniquement · max 15 Mo recommandé</p>
+        </div>
+
+        <!-- File info row (hidden until file selected) -->
+        <div id="file-info" class="file-info hidden">
+          <i class="fa-solid fa-file-pdf fi-icon"></i>
+          <div class="fi-meta">
+            <span id="file-name">document.pdf</span>
+            <span id="file-size" class="fi-size">—</span>
+          </div>
+          <button id="remove-file-btn" class="icon-btn" title="Retirer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Groq API key -->
+        <div class="field-group">
+          <label for="api-key-input"><i class="fa-solid fa-key"></i> Clé API Groq</label>
+          <input type="password" id="api-key-input" placeholder="gsk_…" autocomplete="off">
+          <p class="field-hint">Gratuit sur <a href="https://console.groq.com" target="_blank">console.groq.com</a>. La clé reste dans votre navigateur.</p>
+        </div>
+
+        <!-- Settings grid -->
+        <div class="settings-grid">
+          <div class="field-group">
+            <label for="doc-lang"><i class="fa-solid fa-globe"></i> Langue du PDF</label>
+            <select id="doc-lang">
+              <option value="auto" selected>Détection auto</option>
+              <option value="fr">Français</option>
+              <option value="en">Anglais</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="summary-lang"><i class="fa-solid fa-language"></i> Langue du résumé</label>
+            <select id="summary-lang">
+              <option value="fr" selected>Français</option>
+              <option value="en">Anglais</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="summary-length"><i class="fa-solid fa-align-left"></i> Longueur</label>
+            <select id="summary-length">
+              <option value="short">Court (2–3 phrases)</option>
+              <option value="medium" selected>Standard (5–6 phrases)</option>
+              <option value="long">Détaillé</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="model-select"><i class="fa-solid fa-microchip"></i> Modèle Groq</label>
+            <select id="model-select">
+              <option value="llama3-8b-8192" selected>Llama 3 8B (rapide)</option>
+              <option value="llama3-70b-8192">Llama 3 70B (précis)</option>
+              <option value="mixtral-8x7b-32768">Mixtral 8×7B</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="generate-btn" class="btn-primary" disabled>
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span id="btn-text">Générer le résumé</span>
+        </button>
+
+      </section>
+
+      <!-- ─── RIGHT PANEL ────────────────────────────── -->
+      <section class="card panel-right">
+
+        <div class="tabs-bar">
+          <button class="tab active" data-tab="tab-result"><i class="fa-solid fa-file-lines"></i> Résumé</button>
+          <button class="tab" data-tab="tab-log"><i class="fa-solid fa-terminal"></i> Console</button>
+        </div>
+
+        <!-- Tab: Result -->
+        <div id="tab-result" class="tab-panel active">
+          <div id="placeholder" class="placeholder">
+            <i class="fa-solid fa-feather-pointed ph-icon"></i>
+            <h3>Votre résumé apparaîtra ici</h3>
+            <p>Chargez un PDF, entrez votre clé Groq et cliquez sur Générer.</p>
+          </div>
+
+          <div id="result-block" class="result-block hidden">
+            <div class="stats-row">
+              <div class="stat"><span class="stat-label">Source</span><span id="stat-src" class="stat-val">0 mots</span></div>
+              <div class="stat"><span class="stat-label">Résumé</span><span id="stat-sum" class="stat-val">0 mots</span></div>
+              <div class="stat accent"><span class="stat-label">Compression</span><span id="stat-ratio" class="stat-val">0 %</span></div>
+            </div>
+
+            <div id="summary-text" class="summary-text"></div>
+
+            <div class="action-row">
+              <button id="copy-btn" class="btn-sec"><i class="fa-solid fa-copy"></i> Copier</button>
+              <button id="download-txt-btn" class="btn-sec"><i class="fa-solid fa-download"></i> .txt</button>
+              <button id="print-pdf-btn" class="btn-sec"><i class="fa-solid fa-print"></i> PDF</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Console -->
+        <div id="tab-log" class="tab-panel hidden">
+          <div class="console-wrap">
+            <div class="console-bar">
+              <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+              <span class="console-title">summapdf — log</span>
+              <button id="clear-log-btn" class="icon-btn"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+            <div id="log-output" class="log-output">
+              <div class="log-line sys">[system] Prêt. En attente d'un document…</div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      Projet académique · Soufia Bahrini (2EAN) · 2026
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
