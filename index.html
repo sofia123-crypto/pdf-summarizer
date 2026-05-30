@@ -49,8 +49,8 @@
                 </div>
                 
                 <!-- Drop Zone for PDF -->
-                <div id="dropzone" class="dropzone">
-                    <input type="file" id="file-input" accept=".pdf" class="file-input">
+                <div id="dropzone" class="dropzone" onclick="document.getElementById('file-input').click()">
+                    <input type="file" id="file-input" accept=".pdf" class="file-input" style="display:none">
                     <div class="dropzone-content">
                         <div class="icon-wrapper">
                             <i class="fa-solid fa-cloud-arrow-up cloud-icon"></i>
