@@ -1,83 +1,76 @@
-# 📄 SummaPDF — Version corrigée
+# 📄 Générateur Automatique de Résumés PDF (Client-Side AI)
 
-Générateur automatique de résumés de documents PDF via l'API **Groq** (gratuite).
+Ce projet est une application web moderne et responsive qui permet d'extraire le texte de documents PDF pour en générer des résumés structurés de manière entièrement automatique et locale.
 
----
-
-## ✅ Corrections apportées
-
-| # | Problème original | Correction |
-|---|---|---|
-| 1 | `pdf.worker.min.js` local non chargé → PDF.js planté | Worker chargé depuis le **même CDN** que la lib (`cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`) dans `app.js` |
-| 2 | `transformers.js` local inutilisable (ESM + modèles distants) | **Supprimé**. Remplacé par l'API **Groq** (cloud, tier gratuit, aucune GPU requise) |
-| 3 | Plantage silencieux sous `file://` (Web Workers bloqués) | Détection automatique du protocole `file://` avec bannière d'avertissement |
-| 4 | Pas de découpage → crash/troncature sur PDF longs | Texte découpé en blocs de 2 500 mots ; résumés partiels fusionnés |
-| 5 | `pdf.min.js` / `pdf.worker.min.js` versionnés localement différemment | Seule la version CDN est utilisée, versions synchronisées |
-| 6 | Pas de `package.json` | Projet **100 % statique**, aucune dépendance npm |
+## 👥 Étudiante
+*   **Bahrini Soufia** (Classe : **2EAN**)
 
 ---
 
-## 🚀 Installation & lancement
+## 🚀 Caractéristiques du Projet
 
-### Prérequis
-- Un compte gratuit sur [console.groq.com](https://console.groq.com) → créez une clé API (`gsk_…`)
+*   **Interface Web Premium :** Design moderne en verre dépoli (Glassmorphism), transitions fluides, et mode sombre natif.
+*   **100% Client-Side (Zéro coût d'API) :** Pas besoin de clé OpenAI ou Anthropic. Les calculs d'intelligence artificielle s'exécutent localement dans votre navigateur à l'aide de modèles ONNX optimisés et de la bibliothèque **Transformers.js**.
+*   **Gestion Multilingue Intelligente :** L'application intègre un pipeline de traduction bidirectionnelle (Français $\leftrightarrow$ Anglais) pour permettre le résumé de documents francophones de façon très précise à l'aide de modèles spécialisés.
+*   **Exécution non-bloquante :** L'inférence des modèles s'effectue dans un **Web Worker** séparé afin que l'interface graphique reste parfaitement fluide et interactive.
+*   **Fonctionnalités d'Export :** Copie du résumé en un clic, téléchargement au format `.txt` et export en document PDF propre.
 
-### Lancement
+---
 
-**Option 1 — VS Code Live Server :**
-Ouvrez le dossier dans VS Code → clic droit sur `index.html` → *Open with Live Server*
+## 🛠️ Architecture Technique
 
-**Option 2 — Python :**
+L'application s'appuie sur les technologies suivantes :
+1.  **HTML5 & CSS3 :** Structure sémantique et design moderne.
+2.  **PDF.js (Mozilla) :** Extraction du texte brut à partir des fichiers PDF téléversés.
+3.  **Transformers.js (Hugging Face) :** Chargement et exécution de modèles de type *Transformer* compilés en WebAssembly (WASM).
+4.  **Modèles d'Intelligence Artificielle utilisés (locaux) :**
+    *   **Résumé :** `Xenova/distilbart-cnn-6-6` (Modèle BART distillé, optimisé pour la synthèse).
+    *   **Traduction Français $\rightarrow$ Anglais :** `Xenova/opus-mt-fr-en` (Helsinki-NLP).
+    *   **Traduction Anglais $\rightarrow$ Français :** `Xenova/opus-mt-en-fr` (Helsinki-NLP).
+
+---
+
+## 📦 Installation et Lancement Local
+
+Comme le projet est purement statique et s'exécute côté client, **il n'y a pas d'installation de serveurs complexes ni de bases de données requises**.
+
+### Option 1 : Double-clic (Simple)
+1. Téléchargez ou clonez ce dépôt GitHub.
+2. Double-cliquez sur le fichier `index.html` pour l'ouvrir dans votre navigateur préféré (Chrome, Edge, Firefox, Safari, etc.).
+
+### Option 2 : Serveur Local (Recommandé pour de meilleures performances)
+Pour éviter certaines restrictions liées au protocole `file://` sur les anciens navigateurs, lancez un mini-serveur local :
+
+**Avec VS Code :**
+Installez l'extension **Live Server** et cliquez sur "Go Live" sur le fichier `index.html`.
+
+**Avec Python (si installé) :**
 ```bash
-cd pdf-summarizer-fixed
 python -m http.server 8000
 ```
-Puis ouvrez `http://localhost:8000`
-
-> ⚠️ **Ne pas double-cliquer sur `index.html`** (protocole `file://` bloque PDF.js).
+Puis accédez à `http://localhost:8000`.
 
 ---
 
-## 🗂️ Fichiers du projet
+## 📽️ Démonstration Vidéo & Captures d'Écran
 
-```
-pdf-summarizer-fixed/
-├── index.html   → Interface utilisateur
-├── app.js       → Logique : PDF.js, Groq API, chunking
-├── style.css    → Thème sombre glassmorphism
-└── README.md    → Ce fichier
-```
-
-Les fichiers `pdf.min.js`, `pdf.worker.min.js`, `transformers.js`, `worker.js` de l'original **ne sont plus nécessaires** et peuvent être supprimés.
+*(Ajoutez ici vos captures d'écran et le lien vers votre vidéo de démonstration)*
+- **Lien de la vidéo de démo :** `[Lien de votre vidéo ici]`
+- **Capture d'écran 1 - Accueil :** `[Image de l'interface d'accueil]`
+- **Capture d'écran 2 - Génération :** `[Image pendant le résumé avec la barre de progression]`
+- **Capture d'écran 3 - Résultat :** `[Image du résumé généré]`
 
 ---
 
-## 🔑 Obtenir une clé Groq (gratuit)
+## 📝 Fonctionnement du Pipeline de Traduction-Résumé
 
-1. Créez un compte sur [console.groq.com](https://console.groq.com)
-2. Menu **API Keys** → *Create API Key*
-3. Copiez la clé (`gsk_…`) et collez-la dans le champ de l'application
+Pour surmonter la limitation des modèles de résumé légers qui sont principalement entraînés sur des corpus anglophones, l'application exécute la logique suivante de façon transparente lorsque vous résumez un document en français :
 
-La clé reste uniquement dans votre navigateur et n'est jamais envoyée ailleurs qu'à l'API Groq.
-
----
-
-## 📐 Architecture
-
+```mermaid
+graph TD
+    A[Fichier PDF en Français] -->|Extraction PDF.js| B(Texte brut en Français)
+    B -->|Traduction via opus-mt-fr-en| C(Texte brut en Anglais)
+    C -->|Résumé via distilbart-cnn-6-6| D(Résumé en Anglais)
+    D -->|Traduction via opus-mt-en-fr| E(Résumé final en Français)
+    E -->|Affichage + Export| F[Téléchargement / Copie]
 ```
-PDF uploadé
-    ↓ PDF.js (CDN)
-Texte extrait
-    ↓ Découpage par blocs de 2500 mots (si long)
-Bloc(s) de texte
-    ↓ Prompt structuré
-API Groq (Llama 3 / Mixtral)
-    ↓
-Résumé(s) partiel(s)
-    ↓ Fusion si plusieurs blocs
-Résumé final affiché
-```
-
----
-
-*Projet académique · Soufia Bahrini (2EAN) · 2026*
