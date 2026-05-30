@@ -62,7 +62,7 @@ function initWorker() {
         appState.worker.terminate();
     }
     
-    appState.worker = new Worker('worker.js');
+    appState.worker = new Worker('worker.js', { type: 'module' });
     
     appState.worker.onmessage = function(e) {
         const { status, type, message, model, progressData, summary, sourceWords, summaryWords, error } = e.data;
