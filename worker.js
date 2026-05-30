@@ -1,8 +1,5 @@
 // Import Transformers.js UMD build locally
-importScripts('transformers.js');
-
-// Configure environment to fetch models only from Hugging Face Hub (no local assets)
-const { pipeline, env } = transformers;
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js';
 env.allowLocalModels = false;
 
 // Pipelines cache
