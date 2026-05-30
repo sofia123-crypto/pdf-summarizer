@@ -334,7 +334,10 @@ function handleDownloadProgress(modelName, progressData) {
    ========================================================================== */
 function startGeneration() {
     if (appState.isProcessing || !appState.extractedText) return;
-    
+    const apiKey = document.getElementById('api-key-input').value.trim();
+    if (!apiKey) {
+        alert('Veuillez entrer votre clé API Anthropic.');
+        return;
     appState.isProcessing = true;
     elements.generateBtn.disabled = true;
     elements.removeFileBtn.disabled = true;
@@ -360,7 +363,8 @@ function startGeneration() {
         docLang,
         summaryLang,
         summaryLength,
-        modelSpeed
+        modelSpeed,
+        apikey
     });
 }
 
