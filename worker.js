@@ -3,7 +3,7 @@ self.onmessage = async function(e) {
 
     if (action === 'generate') {
         try {
-            log('info', 'Envoi du texte à Claude API...');
+            log('info', 'Envoi du texte à Groq API...');
 
             const lengthInstruction = summaryLength === 'short' 
                 ? 'un résumé court (5-8 phrases)' 
@@ -15,21 +15,25 @@ self.onmessage = async function(e) {
                 ? 'Réponds en français.' 
                 : 'Reply in English.';
 
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-api-key': apiKey,
-                    'anthropic-version': '2023-06-01',
-                    'anthropic-dangerous-direct-browser-access': 'true'
+                    'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: 'claude-haiku-4-5-20251001',
+                    model: 'llama3-8b-8192',
                     max_tokens: 1024,
-                    messages: [{
-                        role: 'user',
-                        content: `Fais ${lengthInstruction} du document suivant. ${langInstruction}\n\nDocument:\n${text.slice(0, 15000)}`
-                    }]
+                    messages: [
+                        {
+                            role: 'system',
+                            content: `Tu es un assistant spécialisé dans la synthèse de documents. ${langInstruction}`
+                        },
+                        {
+                            role: 'user',
+                            content: `Fais ${lengthInstruction} du document suivant.\n\nDocument:\n${text.slice(0, 15000)}`
+                        }
+                    ]
                 })
             });
 
@@ -37,7 +41,7 @@ self.onmessage = async function(e) {
 
             if (data.error) throw new Error(data.error.message);
 
-            const summary = data.content[0].text;
+            const summary = data.choices[0].message.content;
 
             self.postMessage({
                 status: 'complete',
